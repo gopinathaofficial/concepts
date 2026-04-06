@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Temperature — Complete Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f9f8f5; --bg2: #ffffff; --border: #e2e0d8;
+    --text: #1a1a18; --muted: #6b6a63; --accent: #534AB7;
+    --accent-light: #EEEDFE; --accent-border: #AFA9EC;
+    --teal: #0F6E56; --teal-light: #E1F5EE; --teal-border: #5DCAA5;
+    --amber: #BA7517; --amber-light: #FAEEDA; --amber-border: #EF9F27;
+    --coral: #993C1D; --coral-light: #FAECE7; --coral-border: #F0997B;
+    --green: #3B6D11; --green-light: #EAF3DE; --green-border: #97C459;
+    --red: #A32D2D; --red-light: #FCEBEB; --red-border: #F09595;
+    --radius: 12px; --radius-sm: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --bg2: #232320; --border: #3a3a36;
+      --text: #e8e6dc; --muted: #9c9a92;
+      --accent-light: #26215C; --accent-border: #534AB7;
+      --teal-light: #04342C; --teal-border: #1D9E75;
+      --amber-light: #412402; --amber-border: #BA7517;
+      --coral-light: #4A1B0C; --coral-border: #D85A30;
+      --green-light: #173404; --green-border: #639922;
+      --red-light: #501313; --red-border: #E24B4A;
+    }
+  }
+  body { background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; padding: 0; }
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* Header */
+  .hero { text-align: center; padding: 48px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+  .hero h1 { font-size: 32px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+  .hero p { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 auto; }
+  .tag { display: inline-block; background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 20px; font-size: 11px; font-weight: 500; padding: 3px 10px; margin-bottom: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* Section titles */
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  h2 { font-size: 22px; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+  h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+  .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 600px) { .card-row { grid-template-columns: 1fr; } }
+
+  /* Definition block */
+  .def-formula { background: var(--accent-light); border: 1px solid var(--accent-border); border-radius: var(--radius-sm); padding: 18px 20px; margin: 16px 0; font-family: 'Courier New', monospace; font-size: 14px; color: var(--accent); text-align: center; }
+  .highlight-box { background: var(--accent-light); border-left: 3px solid var(--accent); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 18px; margin: 12px 0; }
+
+  /* Temperature scale */
+  .temp-scale { display: flex; border-radius: var(--radius-sm); overflow: hidden; margin: 20px 0; height: 56px; }
+  .temp-zone { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 11px; font-weight: 500; }
+  .zone-0 { background: #B5D4F4; color: #0C447C; }
+  .zone-1 { background: #85B7EB; color: #0C447C; }
+  .zone-2 { background: #C0DD97; color: #27500A; }
+  .zone-3 { background: #FAC775; color: #633806; }
+  .zone-4 { background: #F0997B; color: #4A1B0C; }
+  .zone-5 { background: #E24B4A; color: #501313; }
+  .zone-label { font-size: 13px; font-weight: 600; }
+
+  /* Ability pills */
+  .ability-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  @media (max-width: 500px) { .ability-grid { grid-template-columns: repeat(2, 1fr); } }
+  .ability-pill { border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+  .ability-pill .emoji { font-size: 20px; margin-bottom: 4px; }
+  .ability-pill .name { font-size: 12px; font-weight: 600; }
+  .ability-pill .temp { font-size: 11px; margin-top: 2px; opacity: 0.8; }
+  .ap-blue { background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent); }
+  .ap-teal { background: var(--teal-light); border: 1px solid var(--teal-border); color: var(--teal); }
+  .ap-amber { background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber); }
+  .ap-coral { background: var(--coral-light); border: 1px solid var(--coral-border); color: var(--coral); }
+  .ap-green { background: var(--green-light); border: 1px solid var(--green-border); color: var(--green); }
+  .ap-red { background: var(--red-light); border: 1px solid var(--red-border); color: var(--red); }
+
+  /* Edge cases */
+  .edge-card { border-radius: var(--radius); padding: 20px; margin-bottom: 14px; border: 1px solid; }
+  .edge-card.warning { background: var(--amber-light); border-color: var(--amber-border); }
+  .edge-card.danger { background: var(--coral-light); border-color: var(--coral-border); }
+  .edge-card.info { background: var(--accent-light); border-color: var(--accent-border); }
+  .edge-card.success { background: var(--teal-light); border-color: var(--teal-border); }
+  .edge-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .edge-card.warning .edge-label { color: var(--amber); }
+  .edge-card.danger .edge-label { color: var(--coral); }
+  .edge-card.info .edge-label { color: var(--accent); }
+  .edge-card.success .edge-label { color: var(--teal); }
+  .edge-card h3 { font-size: 14px; margin-bottom: 6px; }
+  .edge-card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .edge-card code { font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.07); padding: 1px 5px; border-radius: 4px; }
+
+  /* Interview Q&A */
+  .qa-block { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+  .qa-q { background: var(--bg2); padding: 18px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; user-select: none; }
+  .qa-q:hover { background: var(--accent-light); }
+  .qa-q-text { font-size: 14px; font-weight: 500; color: var(--text); }
+  .qa-q-num { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 28px; }
+  .qa-chevron { font-size: 12px; color: var(--muted); transition: transform 0.2s; min-width: 16px; text-align: right; }
+  .qa-a { background: var(--bg); padding: 18px 20px; border-top: 1px solid var(--border); display: none; }
+  .qa-a.open { display: block; }
+  .qa-a p { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 10px; }
+  .qa-a p:last-child { margin-bottom: 0; }
+  .qa-a .analogy { background: var(--accent-light); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--text); margin: 10px 0; font-style: italic; }
+  .qa-a .code-note { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-family: monospace; font-size: 12px; color: var(--muted); margin: 10px 0; }
+  .qa-a .tip { background: var(--teal-light); border: 1px solid var(--teal-border); border-radius: 6px; padding: 10px 14px; font-size: 13px; color: var(--teal); margin: 10px 0; }
+  .qa-a ul { padding-left: 18px; font-size: 13px; }
+  .qa-a li { margin-bottom: 5px; }
+  .chevron-open { transform: rotate(180deg); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--accent-light); color: var(--accent); font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--accent-border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .badge-low { background: var(--teal-light); color: var(--teal); }
+  .badge-mid { background: var(--amber-light); color: var(--amber); }
+  .badge-high { background: var(--coral-light); color: var(--coral); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="tag">LLM Fundamentals</div>
+    <h1>LLM Temperature — Complete Guide</h1>
+    <p>Definition, edge cases, optimal settings per task, and interview prep — all in one place.</p>
+  </div>
+
+  <!-- ────── SECTION 1: DEFINITION ────── -->
+  <div class="section-label">Section 1 — Definition</div>
+  <h2>What is Temperature in LLMs?</h2>
+
+  <div class="card">
+    <h3>The simple explanation</h3>
+    <p style="margin-bottom:12px">Temperature controls <strong>how random or creative</strong> an LLM's output is. Think of it like a confidence dial:</p>
+    <ul style="padding-left:18px; font-size:14px; line-height:1.8">
+      <li><strong>Low temperature (close to 0)</strong> → The model picks the most likely word every time. Predictable, focused, deterministic.</li>
+      <li><strong>High temperature (close to 2)</strong> → The model gives more equal chances to unlikely words too. More creative, surprising, but sometimes incoherent.</li>
+    </ul>
+    <div class="highlight-box" style="margin-top:16px">
+      <strong>Real-world analogy:</strong> Imagine asking 10 people "What's a fruit?" Low temperature = everyone says "Apple". High temperature = you get Apple, Durian, Starfruit, Dragon fruit, and maybe "Tuesday" from one person.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>The technical explanation</h3>
+    <p style="margin-bottom:12px">Before the model picks the next word (token), it computes a score (called a logit) for every word in its vocabulary. Temperature scales those scores before converting them to probabilities:</p>
+    <div class="def-formula">P(token<sub>i</sub>) = e<sup>(score<sub>i</sub> / T)</sup> / Σ e<sup>(score<sub>j</sub> / T)</sup></div>
+    <p style="font-size:13px; color: var(--muted)">Where <strong>T</strong> is the temperature. As T → 0, the top token gets nearly 100% probability (greedy). As T → ∞, all tokens become equally likely (pure random).</p>
+  </div>
+
+  <!-- Temperature scale visual -->
+  <div class="card">
+    <h3>Temperature scale at a glance</h3>
+    <div class="temp-scale">
+      <div class="temp-zone zone-0"><span class="zone-label">~0</span><span>Greedy</span></div>
+      <div class="temp-zone zone-1"><span class="zone-label">0.3</span><span>Precise</span></div>
+      <div class="temp-zone zone-2"><span class="zone-label">0.7</span><span>Balanced</span></div>
+      <div class="temp-zone zone-3"><span class="zone-label">1.0</span><span>Default</span></div>
+      <div class="temp-zone zone-4"><span class="zone-label">1.5</span><span>Creative</span></div>
+      <div class="temp-zone zone-5"><span class="zone-label">2.0</span><span>Chaotic</span></div>
+    </div>
+    <div class="ability-grid">
+      <div class="ability-pill ap-blue"><div class="name">Translation</div><div class="temp">Best: ~0.1</div></div>
+      <div class="ability-pill ap-teal"><div class="name">Summarization</div><div class="temp">Best: ~0.3</div></div>
+      <div class="ability-pill ap-green"><div class="name">Instruction following</div><div class="temp">Best: &lt; 1.0</div></div>
+      <div class="ability-pill ap-amber"><div class="name">In-context learning</div><div class="temp">Best: ~0.7</div></div>
+      <div class="ability-pill ap-amber"><div class="name">Causal reasoning</div><div class="temp">Slight boost at 1.3</div></div>
+      <div class="ability-pill ap-coral"><div class="name">Creativity</div><div class="temp">Best: ~1.3</div></div>
+    </div>
+  </div>
+
+  <!-- Quick reference table -->
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table>
+      <thead>
+        <tr><th>Task</th><th>Recommended Temp</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Code generation</td><td><span class="badge badge-low">0.1 – 0.4</span></td><td>Correctness matters; randomness causes bugs</td></tr>
+        <tr><td>Machine translation</td><td><span class="badge badge-low">~0.1</span></td><td>Translation is deterministic by nature</td></tr>
+        <tr><td>Factual Q&A</td><td><span class="badge badge-low">0.0 – 0.3</span></td><td>You want the most likely correct answer</td></tr>
+        <tr><td>Summarization</td><td><span class="badge badge-low">0.3 – 0.5</span></td><td>Faithful to source; slight flexibility for phrasing</td></tr>
+        <tr><td>Instruction following</td><td><span class="badge badge-mid">0.5 – 1.0</span></td><td>Sharp drop in quality above T=1 for small models</td></tr>
+        <tr><td>Chatbot / conversation</td><td><span class="badge badge-mid">0.7 – 1.0</span></td><td>Natural, varied responses without going off-rails</td></tr>
+        <tr><td>Brainstorming</td><td><span class="badge badge-high">1.0 – 1.3</span></td><td>Diverse, novel ideas are the goal</td></tr>
+        <tr><td>Creative writing</td><td><span class="badge badge-high">1.3 – 1.5</span></td><td>Originality peaks around 1.3 for most models</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ────── SECTION 2: EDGE CASES ────── -->
+  <div class="section-label">Section 2 — Edge Cases</div>
+  <h2>Important Edge Cases to Know</h2>
+
+  <div class="edge-card danger">
+    <div class="edge-label">Edge Case 1 — Common Misconception</div>
+    <h3>❌ "Higher temperature always helps with complex reasoning"</h3>
+    <p>It's tempting to think that if a model is "stuck", cranking up the temperature will help it reason better. Actually, for tasks like <strong>machine translation and summarization</strong>, higher temperature consistently hurts performance — sometimes by up to 192%. These tasks are deterministic: there's one right answer, and randomness only introduces errors.</p>
+  </div>
+
+  <div class="edge-card warning">
+    <div class="edge-label">Edge Case 2 — The Mutation Temperature</div>
+    <h3>⚠️ Performance doesn't degrade gradually — it falls off a cliff</h3>
+    <p>Models don't smoothly get worse as temperature rises. Instead, there's a "mutation temperature" — a sudden sharp drop. For small models, this cliff appears around <code>T=1.0–1.3</code>. For large models, it's around <code>T=1.6–1.9</code>. This is especially dangerous for instruction-following tasks — the model seems fine and then suddenly starts ignoring instructions.</p>
+  </div>
+
+  <div class="edge-card info">
+    <div class="edge-label">Edge Case 3 — The Temperature Paradox</div>
+    <h3>🔀 Complex tasks mix abilities, so temperature effects cancel out</h3>
+    <p>When you evaluate a model on a task that requires <em>both</em> logic and creativity (like advanced math story problems), high temperature helps creativity but hurts reasoning. These effects can cancel each other out, making it look like temperature doesn't matter — when it actually matters a lot for each individual capability underneath.</p>
+  </div>
+
+  <div class="edge-card warning">
+    <div class="edge-label">Edge Case 4 — Small vs Large Models Behave Differently</div>
+    <h3>⚠️ The same temperature can have opposite effects by model size</h3>
+    <p>A temperature of <code>1.3</code> might <em>improve</em> creativity for a 70B model but <em>destroy</em> it for a 1B model. Small models hit their "creativity peak" earlier and fall off faster. Never assume one temperature setting works across model sizes. Always test per model.</p>
+  </div>
+
+  <div class="edge-card success">
+    <div class="edge-label">Edge Case 5 — T=0 Is Not Always Best for Accuracy</div>
+    <h3>✅ Zero temperature isn't always optimal even for logical tasks</h3>
+    <p>For causal reasoning, medium and large models actually show a slight performance <em>improvement</em> at <code>T=1.3</code> compared to <code>T=0</code>. The hypothesis is that for counterintuitive problems, a small amount of randomness helps the model explore reasoning paths it wouldn't take greedily. So "always use T=0 for logic" is a myth.</p>
+  </div>
+
+  <div class="edge-card danger">
+    <div class="edge-label">Edge Case 6 — Quantization Doesn't Change Temperature Behavior</div>
+    <h3>❌ "4-bit quantization changes optimal temperature settings"</h3>
+    <p>Research shows that FP16 and 4-bit quantized models have the same optimal temperature ranges — the behavior is consistent across precision levels. The absolute performance may differ by 10–20%, but the shape of the temperature-performance curve stays the same. So you can safely tune temperature on a quantized model and apply those settings to a full-precision model.</p>
+  </div>
+
+  <div class="edge-card info">
+    <div class="edge-label">Edge Case 7 — Temperature Interacts With Other Parameters</div>
+    <h3>🔀 Top-P and repetition penalty can shift temperature's effect</h3>
+    <p>Temperature is not the only knob. For creative tasks, <strong>Top-P</strong> has an even larger effect than temperature. Changing Top-P from 0.8 to 1.0 while keeping temperature fixed can cause negative performance correlation for creativity tasks. When tuning temperature, keep Top-P and repetition penalty fixed first, or you'll be chasing confounded results.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ────── SECTION 3: INTERVIEW Q&A ────── -->
+  <div class="section-label">Section 3 — Interview Prep</div>
+  <h2>Interview Questions & Answers</h2>
+  <p style="color: var(--muted); font-size:13px; margin-bottom:20px">Click any question to expand the answer.</p>
+
+  <!-- Q1 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q1</span>
+      <span class="qa-q-text">What is sampling temperature in an LLM, and how does it work mathematically?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>Temperature is a hyperparameter that scales the model's output logits before the softmax function converts them into probabilities. Formally, the probability of token <em>i</em> is:</p>
+      <div class="code-note">P(i) = exp(logit_i / T) / sum(exp(logit_j / T)) for all j in vocabulary</div>
+      <p>When T is very small (approaching 0), the exponentials amplify differences — the highest-scoring token gets almost all the probability mass, making the model deterministic. When T is large (approaching infinity), differences get compressed and all tokens become nearly equally likely, producing random output.</p>
+      <div class="analogy">Think of temperature like a volume knob on "surprise". Turn it down and the model says the obvious thing. Turn it up and it might say something unexpected — for better or worse.</div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q2</span>
+      <span class="qa-q-text">What's the difference between temperature = 0 and temperature = 1?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>Temperature = 0</strong> (greedy decoding): The model always picks the single most probable next token. The output is completely deterministic — running the same prompt twice gives the exact same result. No creativity, maximum focus.</p>
+      <p><strong>Temperature = 1</strong> (default sampling): The model samples from the probability distribution as-is, without modification. Each run may produce a slightly different output. Most APIs use this as default because it balances coherence and variety.</p>
+      <div class="tip">In practice, T=0 is preferred for code, math, and factual answers. T=1 is a good default for conversational or open-ended tasks where variety is acceptable.</div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q3</span>
+      <span class="qa-q-text">Does higher temperature always improve creativity? What's the research finding?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>Not always. The relationship follows an inverted-U curve: creativity first increases with temperature, then decreases. The optimal temperature for creativity is around <strong>T=1.3</strong> for medium and large models.</p>
+      <p>Small models are different — they show a marked creativity drop as early as T=1.0. This is because small models have weaker internal representations and can't "channel" randomness productively; they just produce incoherent text instead of creative text.</p>
+      <div class="analogy">It's like adding spice to food. A little makes it more interesting. Too much and nobody can taste anything else. And a beginner cook (small model) gets overwhelmed at a much lower spice level than an expert.</div>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q4</span>
+      <span class="qa-q-text">What is the "mutation temperature" and why should developers care?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>The mutation temperature is the point at which a model's performance drops sharply — not gradually — as temperature increases. It's the "cliff edge" of the temperature curve.</p>
+      <ul>
+        <li>Small models (1B–4B): mutation around T = 1.0–1.3</li>
+        <li>Medium models (7B–13B): mutation around T = 1.3–1.6</li>
+        <li>Large models (40B–80B): mutation around T = 1.6–1.9, or above 2.0</li>
+      </ul>
+      <p>Developers care because if you set T=1.5 thinking it's "a bit creative", a small model may have already crossed its cliff and will give incoherent or instruction-ignoring output. Always know your model size when choosing temperature.</p>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q5</span>
+      <span class="qa-q-text">Why does machine translation degrade the most with high temperature compared to other tasks?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>Translation is inherently deterministic — there is a specific correct rendering of a sentence in another language. Unlike creative writing where many outputs can be "correct", a mistranslated word is simply wrong.</p>
+      <p>Research found that temperature can cause up to <strong>192% relative performance variation</strong> in machine translation — the highest of all six abilities tested. This happens because:</p>
+      <ul>
+        <li>Higher temperature increases the probability of rare or incorrect words</li>
+        <li>Rare words in a translation context are usually wrong words, not creative choices</li>
+        <li>Even small token-level errors compound into broken sentences</li>
+      </ul>
+      <div class="tip">For any translation or structured output task, always use low temperature (T ≈ 0.1). Treat it like code generation — there's a right answer and randomness only introduces bugs.</div>
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q6</span>
+      <span class="qa-q-text">What is the "Temperature Paradox" and how does it affect benchmarking?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>The Temperature Paradox occurs when a benchmark mixes tasks that need opposing temperature settings. For example, a complex math word problem requires:</p>
+      <ul>
+        <li>Low temperature for logical precision</li>
+        <li>Higher temperature for creative problem-solving approaches</li>
+      </ul>
+      <p>These effects cancel each other out, making it appear that temperature has little impact. But if you isolate each ability and test them separately, you find temperature has a dramatic effect on each one individually.</p>
+      <p>This is why general benchmarks like AGI-Eval often show no temperature effect — the signals cancel. The lesson is to always benchmark temperature effects on isolated, capability-specific tasks.</p>
+      <div class="analogy">It's like measuring whether sunscreen works by applying it to half your body and spending the day half in sun, half in shade. The "average" result would mislead you.</div>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q7</span>
+      <span class="qa-q-text">Why might you use a BERT-based temperature selector in a production system?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>Different prompts require different optimal temperatures. A system that always uses T=1.0 will be suboptimal: too random for translation prompts, too conservative for creative prompts.</p>
+      <p>A BERT-based temperature selector classifies each incoming prompt by its primary required ability (translation, creativity, reasoning, etc.) and then routes it to the pre-computed optimal temperature for that ability and model size.</p>
+      <p>Research showed this approach improved SuperGLUE benchmark performance meaningfully for small (1B) and medium (8B) models — particularly for harder tasks like word sense disambiguation (WIC). For large models, the gains were minimal since large models are more robust to temperature changes.</p>
+      <div class="tip">This approach is valuable in resource-constrained scenarios. When you can't afford a large model, squeezing extra performance from a small model via optimal temperature selection is a practical alternative.</div>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q8</span>
+      <span class="qa-q-text">How does temperature interact with Top-P and Top-K sampling?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>These are three separate ways to shape the output distribution:</p>
+      <ul>
+        <li><strong>Temperature</strong> — reshapes the entire probability distribution by scaling logits before softmax</li>
+        <li><strong>Top-K</strong> — restricts sampling to only the K most probable tokens (hard cutoff)</li>
+        <li><strong>Top-P (Nucleus sampling)</strong> — restricts sampling to the smallest set of tokens whose cumulative probability exceeds P (dynamic cutoff)</li>
+      </ul>
+      <p>For most tasks, changing Top-K or Top-P doesn't significantly change how temperature affects performance. But for creative tasks, <strong>Top-P has a large independent effect</strong> — high Top-P (close to 1.0) with high temperature can cause negative performance correlation even at moderate temperatures.</p>
+      <div class="tip">Best practice: fix Top-P = 0.9 and repetition penalty = 1.0 first, then tune temperature. This isolates temperature's effect and avoids confounded results.</div>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q9</span>
+      <span class="qa-q-text">You're building a RAG (Retrieval-Augmented Generation) chatbot. What temperature would you choose and why?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>For a RAG system, the primary requirements are accuracy (don't hallucinate), faithfulness to retrieved documents, and natural-sounding responses. This suggests a low-to-moderate temperature.</p>
+      <p><strong>Recommended approach:</strong></p>
+      <ul>
+        <li>For the retrieval step and any structured output: <code>T = 0.1–0.3</code></li>
+        <li>For generating the final conversational response: <code>T = 0.5–0.7</code></li>
+        <li>Keep it below T=1.0 — above this, instruction-following degrades and the model may start ignoring the retrieved context</li>
+      </ul>
+      <div class="analogy">Think of it like a lawyer citing a document in court. You want them to accurately represent what the document says (low temperature for faithfulness) but still speak naturally to the judge (moderate temperature for tone).</div>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q10</span>
+      <span class="qa-q-text">Does 4-bit quantization change how you should set temperature?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>No — the shape of the temperature-performance curve is essentially the same in FP16 and 4-bit quantized models. The optimal temperature ranges for each task type remain consistent across precision levels.</p>
+      <p>The main difference is absolute performance level: quantized models may score 10–20% lower overall, but their temperature sensitivity pattern is the same. If T=0.7 is optimal for summarization in FP16, it's also optimal in 4-bit.</p>
+      <p>This is practically important because it means you can:</p>
+      <ul>
+        <li>Tune temperature on a cheaper quantized model</li>
+        <li>Apply those settings to a full-precision deployment</li>
+        <li>Save significant compute costs during hyperparameter search</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q11</span>
+      <span class="qa-q-text">A user complains the LLM is giving "boring and repetitive" answers. What do you investigate first?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>First, check the temperature setting. If it's below 0.5, the model is likely in "safe mode" — always picking the most probable token, which naturally feels repetitive since the most probable words are always common, generic words.</p>
+      <p>Immediate steps:</p>
+      <ul>
+        <li>Try increasing temperature to 0.8–1.0 for general conversation</li>
+        <li>Check repetition penalty — if it's set too high (&gt;1.5), the model avoids repeating any word even when repetition would be natural</li>
+        <li>Check Top-P — if it's very low (0.5), only a tiny set of tokens can be selected, limiting vocabulary variety</li>
+        <li>Check if the system prompt is too restrictive, causing the model to "stay safe" linguistically</li>
+      </ul>
+      <div class="tip">Usually, nudging temperature from 0.3 to 0.7–0.9 is the fastest fix for "boring output" complaints without risking incoherence.</div>
+    </div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="qa-block">
+    <div class="qa-q" onclick="toggle(this)">
+      <span class="qa-q-num">Q12</span>
+      <span class="qa-q-text">Why does temperature matter less for large models than for small models?</span>
+      <span class="qa-chevron">▾</span>
+    </div>
+    <div class="qa-a">
+      <p>Large models have richer internal representations and stronger priors learned from more parameters and data. This makes them more "robust" — their top token probabilities are more confident and well-calibrated, so scaling the logits by temperature has less dramatic effect on which tokens end up getting selected.</p>
+      <p>Concretely from research: for large models (40B–80B), the coefficient of variation (performance variation across temperatures) is much smaller across all six abilities. They also have higher mutation temperatures, meaning they can tolerate more randomness before performance collapses.</p>
+      <p>For small models (1B–4B), the probability distributions are flatter and less confident — so a small change in temperature has an outsized effect. Small models are much more sensitive and require more careful temperature tuning.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(el) {
+  const answer = el.nextElementSibling;
+  const chevron = el.querySelector('.qa-chevron');
+  const isOpen = answer.classList.contains('open');
+  answer.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('chevron-open', !isOpen);
+}
+</script>
+</body>
+</html>

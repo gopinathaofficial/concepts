@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Base — Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #F7F5F0;
+  --surface:  #FFFFFF;
+  --sidebar:  #1B1B18;
+  --border:   #E4E0D6;
+  --border2:  #D0CBB8;
+  --text:     #1B1B18;
+  --muted:    #7A7060;
+  --faint:    #B0A898;
+  --accent:   #2A5EDB;
+  --accent-bg:#EEF3FD;
+  --accent-bd:#C4D5F9;
+  --tag-genai-bg: #FEF3E2; --tag-genai: #A35C00; --tag-genai-bd: #F5C97A;
+  --tag-ml-bg:   #E8F5E3; --tag-ml:   #2D6B1A; --tag-ml-bd:   #92CE78;
+  --tag-mlops-bg:#F0EEFE; --tag-mlops:#4B38B3; --tag-mlops-bd:#B5ABEE;
+  --tag-data-bg: #E3F6F8; --tag-data: #0E6B79; --tag-data-bd: #72CEDB;
+  --sidebar-w: 260px;
+  --header-h:  58px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ─────────────────────────────── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--header-h);
+  background: var(--sidebar);
+  display: flex; align-items: center;
+  padding: 0 24px;
+  gap: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.topbar-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 19px;
+  color: #F7F5F0;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.topbar-logo span { color: #F5C97A; font-style: italic; }
+.topbar-search {
+  flex: 1; max-width: 420px; margin-left: auto;
+  position: relative;
+}
+.topbar-search input {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 7px 14px 7px 36px;
+  color: #E8E4D8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.topbar-search input::placeholder { color: rgba(255,255,255,0.3); }
+.topbar-search input:focus { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+.search-icon {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  color: rgba(255,255,255,0.3); font-size: 14px; pointer-events: none;
+}
+.topbar-count {
+  font-size: 12px; color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+}
+
+/* ── LAYOUT ──────────────────────────────── */
+.layout {
+  display: flex;
+  padding-top: var(--header-h);
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ─────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--sidebar);
+  min-height: calc(100vh - var(--header-h));
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  padding: 20px 0 40px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.sidebar-section { margin-bottom: 6px; }
+
+.sidebar-topic {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 20px;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.8px; text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+.sidebar-topic:hover { color: rgba(255,255,255,0.6); }
+.sidebar-topic .chevron {
+  margin-left: auto; font-size: 10px;
+  transition: transform 0.2s;
+  opacity: 0.5;
+}
+.sidebar-topic.open .chevron { transform: rotate(90deg); }
+.sidebar-topic .dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-genai  { background: #F5C97A; }
+.dot-ml     { background: #92CE78; }
+.dot-mlops  { background: #B5ABEE; }
+.dot-data   { background: #72CEDB; }
+
+.sidebar-sub { display: none; padding-bottom: 4px; }
+.sidebar-sub.open { display: block; }
+
+.sidebar-group {
+  padding: 6px 20px 2px 35px;
+  font-size: 11px; font-weight: 600;
+  color: rgba(255,255,255,0.22);
+  letter-spacing: 0.5px; text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 5px 20px 5px 35px;
+  font-size: 12.5px; font-weight: 400;
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  cursor: pointer;
+}
+.sidebar-link:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.04); }
+.sidebar-link.active {
+  color: #F5C97A;
+  border-left-color: #F5C97A;
+  background: rgba(245,201,122,0.06);
+}
+.sidebar-link.has-article::after {
+  content: '↗';
+  float: right;
+  font-size: 10px;
+  opacity: 0.4;
+}
+
+/* ── MAIN CONTENT ────────────────────────── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 40px 48px 80px;
+  max-width: calc(100% - var(--sidebar-w));
+}
+
+/* ── BREADCRUMB ──────────────────────────── */
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--faint);
+  margin-bottom: 32px;
+  font-family: 'DM Mono', monospace;
+}
+.breadcrumb span { color: var(--border2); }
+
+/* ── HERO STRIP ──────────────────────────── */
+.hero-strip {
+  background: var(--sidebar);
+  border-radius: 16px;
+  padding: 36px 40px;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-strip::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(245,201,122,0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: #F5C97A; letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.hero-strip h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 34px; font-weight: 400;
+  color: #F7F5F0; line-height: 1.2;
+  margin-bottom: 12px; letter-spacing: -0.5px;
+}
+.hero-strip p {
+  font-size: 14px; color: rgba(247,245,240,0.5);
+  max-width: 480px; line-height: 1.7;
+}
+.hero-stats {
+  display: flex; gap: 32px; margin-top: 28px;
+}
+.hero-stat { }
+.hero-stat-n {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px; color: #F5C97A; line-height: 1;
+}
+.hero-stat-l { font-size: 12px; color: rgba(247,245,240,0.35); margin-top: 2px; }
+
+/* ── SECTION HEADER ──────────────────────── */
+.section-hd {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 20px; margin-top: 48px;
+}
+.section-hd:first-of-type { margin-top: 0; }
+.section-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.3px; border: 1px solid;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.section-tag:hover { opacity: 0.8; }
+.tag-genai  { background: var(--tag-genai-bg);  color: var(--tag-genai);  border-color: var(--tag-genai-bd);  }
+.tag-ml     { background: var(--tag-ml-bg);    color: var(--tag-ml);    border-color: var(--tag-ml-bd);    }
+.tag-mlops  { background: var(--tag-mlops-bg); color: var(--tag-mlops); border-color: var(--tag-mlops-bd); }
+.tag-data   { background: var(--tag-data-bg);  color: var(--tag-data);  border-color: var(--tag-data-bd);  }
+.section-hd-rule { flex: 1; height: 1px; background: var(--border); }
+
+/* ── SUBTOPIC GROUP ──────────────────────── */
+.subtopic-block { margin-bottom: 36px; }
+.subtopic-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.subtopic-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── ARTICLE CARDS ───────────────────────── */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  position: relative; overflow: hidden;
+  cursor: pointer;
+}
+.card:hover {
+  border-color: var(--border2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  transform: translateY(-1px);
+}
+.card.available:hover { border-color: var(--accent-bd); }
+.card.available::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent);
+}
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.card-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.card-status {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  padding: 3px 7px; border-radius: 10px;
+  border: 1px solid;
+}
+.status-ready { background: var(--accent-bg); color: var(--accent); border-color: var(--accent-bd); }
+.status-soon  { background: var(--bg); color: var(--faint); border-color: var(--border); }
+.card h3 {
+  font-size: 13.5px; font-weight: 600; line-height: 1.4;
+  color: var(--text);
+}
+.card p {
+  font-size: 12px; color: var(--muted); line-height: 1.6;
+  flex: 1;
+}
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 6px;
+}
+.card-meta { font-size: 11px; color: var(--faint); font-family: 'DM Mono', monospace; }
+.card-arrow {
+  font-size: 12px; color: var(--accent);
+  opacity: 0; transition: opacity 0.15s;
+}
+.card:hover .card-arrow { opacity: 1; }
+.card.soon .card-arrow { display: none; }
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media (max-width: 860px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; max-width: 100%; padding: 24px; }
+}
+@media (max-width: 560px) {
+  .cards { grid-template-columns: 1fr; }
+  .hero-stats { gap: 20px; }
+  .hero-strip h1 { font-size: 26px; }
+}
+
+/* ── COMING SOON OVERLAY ─────────────────── */
+.card.soon {
+  opacity: 0.6;
+  cursor: default;
+}
+.card.soon:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border);
+}
+
+/* scroll target highlight */
+.subtopic-block:target .subtopic-label {
+  color: var(--accent);
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <a class="topbar-logo" href="index.html">know<span>base</span></a>
+  <div class="topbar-search">
+    <span class="search-icon">⌕</span>
+    <input type="text" placeholder="Search topics, articles..." id="searchInput" oninput="filterCards(this.value)">
+  </div>
+  <span class="topbar-count" id="countLabel">4 topics · 18 articles</span>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+
+    <!-- GenAI -->
+    <div class="sidebar-section">
+      <div class="sidebar-topic open" onclick="toggleTopic(this)">
+        <span class="dot dot-genai"></span> GenAI
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sidebar-sub open">
+        <div class="sidebar-group">LLM</div>
+        <span class="sidebar-link has-article active" onclick="scrollTo('llm-temperature')">Temperature in LLMs</span>
+        <span class="sidebar-link" onclick="scrollTo('llm-prompting')">Prompt Engineering</span>
+        <span class="sidebar-link" onclick="scrollTo('llm-context')">Context Windows</span>
+        <span class="sidebar-link" onclick="scrollTo('llm-tokenization')">Tokenization</span>
+        <span class="sidebar-link" onclick="scrollTo('llm-rag')">Fine-tuning vs RAG</span>
+
+        <div class="sidebar-group">Image Models</div>
+        <span class="sidebar-link" onclick="scrollTo('img-diffusion')">Diffusion Models</span>
+        <span class="sidebar-link" onclick="scrollTo('img-lora')">LoRA & Adapters</span>
+
+        <div class="sidebar-group">Agents</div>
+        <span class="sidebar-link" onclick="scrollTo('agent-tools')">Tool Use & Function Calling</span>
+        <span class="sidebar-link" onclick="scrollTo('agent-multi')">Multi-Agent Systems</span>
+        <span class="sidebar-link" onclick="scrollTo('agent-memory')">Memory Systems</span>
+      </div>
+    </div>
+
+    <!-- ML -->
+    <div class="sidebar-section">
+      <div class="sidebar-topic" onclick="toggleTopic(this)">
+        <span class="dot dot-ml"></span> Machine Learning
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sidebar-sub">
+        <div class="sidebar-group">Fundamentals</div>
+        <span class="sidebar-link">Gradient Descent</span>
+        <span class="sidebar-link">Backpropagation</span>
+        <span class="sidebar-link">Overfitting & Regularization</span>
+        <div class="sidebar-group">Deep Learning</div>
+        <span class="sidebar-link">Transformers</span>
+        <span class="sidebar-link">CNNs</span>
+        <span class="sidebar-link">RNNs & LSTMs</span>
+      </div>
+    </div>
+
+    <!-- MLOps -->
+    <div class="sidebar-section">
+      <div class="sidebar-topic" onclick="toggleTopic(this)">
+        <span class="dot dot-mlops"></span> MLOps
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sidebar-sub">
+        <div class="sidebar-group">Deployment</div>
+        <span class="sidebar-link">Quantization</span>
+        <span class="sidebar-link">Serving Infrastructure</span>
+        <div class="sidebar-group">Evaluation</div>
+        <span class="sidebar-link">Benchmarks & Datasets</span>
+        <span class="sidebar-link">Metrics Guide</span>
+      </div>
+    </div>
+
+    <!-- Data -->
+    <div class="sidebar-section">
+      <div class="sidebar-topic" onclick="toggleTopic(this)">
+        <span class="dot dot-data"></span> Data Engineering
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sidebar-sub">
+        <div class="sidebar-group">Storage & Pipelines</div>
+        <span class="sidebar-link">Vector Databases</span>
+        <span class="sidebar-link">ETL Pipelines</span>
+        <div class="sidebar-group">Processing</div>
+        <span class="sidebar-link">Data Preprocessing</span>
+        <span class="sidebar-link">Feature Engineering</span>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="breadcrumb">
+      knowbase <span>/</span> all topics
+    </div>
+
+    <!-- Hero -->
+    <div class="hero-strip">
+      <div class="hero-eyebrow">Knowledge Base</div>
+      <h1>Your AI & ML<br>reference library.</h1>
+      <p>Concepts, definitions, edge cases, and interview prep — organized by topic and subtopic.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-n">4</div><div class="hero-stat-l">Main topics</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">11</div><div class="hero-stat-l">Subtopics</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">18</div><div class="hero-stat-l">Articles</div></div>
+        <div class="hero-stat"><div class="hero-stat-n">1</div><div class="hero-stat-l">Published</div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         GENAI
+    ══════════════════════════════════════ -->
+    <div class="section-hd">
+      <span class="section-tag tag-genai">⬡ GenAI</span>
+      <div class="section-hd-rule"></div>
+    </div>
+
+    <!-- LLM subtopic -->
+    <div class="subtopic-block" id="llm">
+      <div class="subtopic-label">LLM — Large Language Models</div>
+      <div class="cards" id="llm-cards">
+
+        <a class="card available" href="llm_temperature_guide.html" id="llm-temperature">
+          <div class="card-top">
+            <div class="card-icon">🌡️</div>
+            <span class="card-status status-ready">Ready</span>
+          </div>
+          <h3>Temperature in LLMs</h3>
+          <p>Definition, math, optimal settings per task, edge cases, and 12 interview Q&As.</p>
+          <div class="card-footer">
+            <span class="card-meta">~18 min read</span>
+            <span class="card-arrow">↗</span>
+          </div>
+        </a>
+
+        <div class="card soon" id="llm-prompting">
+          <div class="card-top">
+            <div class="card-icon">✍️</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Prompt Engineering</h3>
+          <p>Zero-shot, few-shot, chain-of-thought, and structured prompting techniques.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+        <div class="card soon" id="llm-context">
+          <div class="card-top">
+            <div class="card-icon">📐</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Context Windows</h3>
+          <p>How context length affects performance, KV cache, and long-context strategies.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+        <div class="card soon" id="llm-tokenization">
+          <div class="card-top">
+            <div class="card-icon">🔤</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Tokenization</h3>
+          <p>BPE, WordPiece, SentencePiece — how text becomes numbers and why it matters.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+        <div class="card soon" id="llm-rag">
+          <div class="card-top">
+            <div class="card-icon">🔀</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Fine-tuning vs RAG</h3>
+          <p>When to fine-tune, when to use retrieval-augmented generation, and hybrid approaches.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Image Models subtopic -->
+    <div class="subtopic-block" id="image-models">
+      <div class="subtopic-label">Image Models</div>
+      <div class="cards" id="img-cards">
+
+        <div class="card soon" id="img-diffusion">
+          <div class="card-top">
+            <div class="card-icon">🌀</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Diffusion Models</h3>
+          <p>Forward/reverse diffusion process, DDPM, DDIM, and how Stable Diffusion works.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+        <div class="card soon" id="img-lora">
+          <div class="card-top">
+            <div class="card-icon">🎛️</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>LoRA & Adapters</h3>
+          <p>Parameter-efficient fine-tuning: LoRA, QLoRA, adapters — math and practical trade-offs.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Agents subtopic -->
+    <div class="subtopic-block" id="agents">
+      <div class="subtopic-label">Agents & Tooling</div>
+      <div class="cards" id="agent-cards">
+
+        <div class="card soon" id="agent-tools">
+          <div class="card-top">
+            <div class="card-icon">🔧</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Tool Use & Function Calling</h3>
+          <p>How LLMs invoke external tools, structured outputs, and OpenAI / Anthropic tool APIs.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+        <div class="card soon" id="agent-multi">
+          <div class="card-top">
+            <div class="card-icon">🤝</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Multi-Agent Systems</h3>
+          <p>Orchestrator-worker patterns, agent communication, and failure modes in autonomous pipelines.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+        <div class="card soon" id="agent-memory">
+          <div class="card-top">
+            <div class="card-icon">🧠</div>
+            <span class="card-status status-soon">Coming soon</span>
+          </div>
+          <h3>Memory Systems</h3>
+          <p>Episodic, semantic, and working memory in agents — how to give LLMs persistent state.</p>
+          <div class="card-footer">
+            <span class="card-meta">Planned</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         MACHINE LEARNING
+    ══════════════════════════════════════ -->
+    <div class="section-hd">
+      <span class="section-tag tag-ml">◈ Machine Learning</span>
+      <div class="section-hd-rule"></div>
+    </div>
+
+    <div class="subtopic-block" id="ml-fundamentals">
+      <div class="subtopic-label">Fundamentals</div>
+      <div class="cards">
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">📉</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Gradient Descent</h3>
+          <p>SGD, Adam, learning rate schedules — optimizers explained with visual intuition.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">↩️</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Backpropagation</h3>
+          <p>Chain rule, computational graphs, and how gradients flow through a neural network.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">⚖️</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Overfitting & Regularization</h3>
+          <p>Dropout, weight decay, early stopping, and the bias-variance tradeoff.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subtopic-block" id="ml-deep">
+      <div class="subtopic-label">Deep Learning Architectures</div>
+      <div class="cards">
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">⚡</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Transformers</h3>
+          <p>Self-attention, positional encoding, encoder-decoder architecture — the definitive breakdown.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🖼️</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>CNNs</h3>
+          <p>Convolutions, pooling, receptive fields, and how CNNs see images.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🔁</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>RNNs & LSTMs</h3>
+          <p>Sequence modeling, vanishing gradients, LSTM gates, and why Transformers replaced them.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         MLOPS
+    ══════════════════════════════════════ -->
+    <div class="section-hd">
+      <span class="section-tag tag-mlops">◎ MLOps</span>
+      <div class="section-hd-rule"></div>
+    </div>
+
+    <div class="subtopic-block" id="mlops-deploy">
+      <div class="subtopic-label">Model Deployment</div>
+      <div class="cards">
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🗜️</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Quantization</h3>
+          <p>INT8, FP16, 4-bit (AWQ, GPTQ) — compressing models without destroying accuracy.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🚀</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Serving Infrastructure</h3>
+          <p>vLLM, TGI, Triton — batching strategies, throughput vs latency, autoscaling.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subtopic-block" id="mlops-eval">
+      <div class="subtopic-label">Evaluation</div>
+      <div class="cards">
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">📊</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Benchmarks & Datasets</h3>
+          <p>MMLU, HumanEval, HELM, SuperGLUE — what each measures and what it misses.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">📏</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Metrics Guide</h3>
+          <p>BLEU, ROUGE, BERTScore, perplexity — when to use which and their blind spots.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         DATA ENGINEERING
+    ══════════════════════════════════════ -->
+    <div class="section-hd">
+      <span class="section-tag tag-data">◇ Data Engineering</span>
+      <div class="section-hd-rule"></div>
+    </div>
+
+    <div class="subtopic-block" id="data-storage">
+      <div class="subtopic-label">Storage & Pipelines</div>
+      <div class="cards">
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🗄️</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Vector Databases</h3>
+          <p>FAISS, Pinecone, Weaviate — approximate nearest neighbor search, indexing strategies.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🔄</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>ETL Pipelines</h3>
+          <p>Building reliable data pipelines for ML: ingestion, transformation, and validation.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subtopic-block" id="data-processing">
+      <div class="subtopic-label">Processing</div>
+      <div class="cards">
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🧹</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Data Preprocessing</h3>
+          <p>Cleaning, normalizing, and preparing datasets — common pitfalls and best practices.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+        <div class="card soon">
+          <div class="card-top"><div class="card-icon">🏗️</div><span class="card-status status-soon">Coming soon</span></div>
+          <h3>Feature Engineering</h3>
+          <p>Embeddings, encodings, and transformations — building representations that help models learn.</p>
+          <div class="card-footer"><span class="card-meta">Planned</span></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function toggleTopic(el) {
+  const sub = el.nextElementSibling;
+  el.classList.toggle('open');
+  sub.classList.toggle('open');
+}
+
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.style.outline = '2px solid var(--accent)';
+    el.style.outlineOffset = '4px';
+    setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 1800);
+  }
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function filterCards(q) {
+  const term = q.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card');
+  let visible = 0;
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const show = !term || text.includes(term);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('countLabel').textContent =
+    term ? `${visible} result${visible !== 1 ? 's' : ''} found` : '4 topics · 18 articles';
+}
+
+// Sidebar: open the genai section by default
+document.querySelector('.sidebar-topic').classList.add('open');
+document.querySelector('.sidebar-sub').classList.add('open');
+</script>
+</body>
+</html>
